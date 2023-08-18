@@ -44,7 +44,7 @@ func TestHandleRegister(t *testing.T) {
 
 	tests := []struct {
 		name       string
-		body       map[string]string
+		body       interface{}
 		mockSetup  func(m *MockUserService)
 		wantStatus int
 	}{
@@ -82,7 +82,17 @@ func TestHandleRegister(t *testing.T) {
 				"password": "testpass",
 			},
 			mockSetup: func(m *MockUserService) {
-				m.On("SearchUserByUsername", "existinguser").Return(models.User{Username: ""}, nil)
+				m.On("SearchUserByUsername", "").Return(models.User{}, nil)
+				m.On("CreateUser", mock.AnythingOfType("models.User")).Return(errors.New("empty user name"))
+			},
+			wantStatus: http.StatusBadRequest,
+		},
+		{
+			// test case 4: invalid JSON, return http.StatusBadRequest
+			name: "invalid JSON",
+			body: "test body",
+			mockSetup: func(m *MockUserService) {
+				m.On("SearchUserByUsername", "").Return(models.User{}, nil)
 				m.On("CreateUser", mock.AnythingOfType("models.User")).Return(errors.New("empty user name"))
 			},
 			wantStatus: http.StatusBadRequest,
@@ -116,7 +126,7 @@ func TestHandleLogin(t *testing.T) {
 
 	tests := []struct {
 		name       string
-		body       map[string]string
+		body       interface{}
 		mockSetup  func(m *MockUserService)
 		wantStatus int
 	}{
@@ -161,6 +171,16 @@ func TestHandleLogin(t *testing.T) {
 			},
 			mockSetup: func(m *MockUserService) {
 				m.On("SearchUserByUsername", "testuser").Return(models.User{}, errors.New("not found"))
+			},
+			wantStatus: http.StatusBadRequest,
+		},
+		{
+			// test case 4: invalid JSON, return http.StatusBadRequest
+			name: "invalid JSON",
+			body: "test body",
+			mockSetup: func(m *MockUserService) {
+				m.On("SearchUserByUsername", "").Return(models.User{}, nil)
+				m.On("CreateUser", mock.AnythingOfType("models.User")).Return(errors.New("empty user name"))
 			},
 			wantStatus: http.StatusBadRequest,
 		},
@@ -270,11 +290,20 @@ func TestHandleSearchUser(t *testing.T) {
 			wantStatus: http.StatusOK,
 		},
 		{
-			// test case 3: user not found, return http.StatusBadRequest
+			// test case 3.1: user not found, return http.StatusBadRequest
 			name:  "user not found",
 			query: "username=testuser",
 			mockSetup: func(m *MockUserService) {
 				m.On("SearchUserByUsername", "testuser").Return(models.User{}, errors.New("not found"))
+			},
+			wantStatus: http.StatusBadRequest,
+		},
+		{
+			// test case 3.2: user not found, return http.StatusBadRequest
+			name:  "user not found",
+			query: "username=testid",
+			mockSetup: func(m *MockUserService) {
+				m.On("SearchUserByID", "testid").Return(models.User{}, errors.New("not found"))
 			},
 			wantStatus: http.StatusBadRequest,
 		},
