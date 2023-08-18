@@ -1,6 +1,7 @@
 package handlers
 
 import (
+	"fmt"
 	"net/http"
 	"usermanagement/internal/models"
 	"usermanagement/internal/services"
@@ -10,10 +11,10 @@ import (
 
 type Server struct {
 	router      *gin.Engine
-	userService *services.UserService
+	userService services.UserServiceInterface
 }
 
-func NewServer(userService *services.UserService) *Server {
+func NewServer(userService services.UserServiceInterface) *Server {
 	return &Server{
 		router:      gin.Default(),
 		userService: userService,
@@ -31,6 +32,10 @@ func (s *Server) SetupRoute() {
 	s.router.POST("/register", s.handleRegister)
 	s.router.POST("/login", s.handleLogin)
 	s.router.GET("/search", s.handleSearchUser)
+}
+
+func (s *Server) GetRouter() *gin.Engine {
+	return s.router
 }
 
 // Run: run server
@@ -92,6 +97,7 @@ func (s *Server) handleLogin(c *gin.Context) {
 func (s *Server) handleGetAllUsers(c *gin.Context) {
 	users, err := s.userService.GetAllUsers()
 	if err != nil {
+		fmt.Println(err)
 		c.JSON(http.StatusBadRequest, gin.H{
 			"error": err.Error(),
 		})
