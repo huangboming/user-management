@@ -14,7 +14,10 @@ import (
 // Injectors from wire.go:
 
 func InitializeServer() (*handlers.Server, error) {
-	userService := services.NewUserService()
-	server := handlers.NewServer(userService)
+	userServiceInterface, err := services.NewUserService()
+	if err != nil {
+		return nil, err
+	}
+	server := handlers.NewServer(userServiceInterface)
 	return server, nil
 }

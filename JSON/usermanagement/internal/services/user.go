@@ -8,37 +8,45 @@ import (
 	"usermanagement/internal/models"
 )
 
-const dataFilePath = "../internal/services/data/users.json"
+var DataFilePath = "../internal/services/data/users.json"
+
+type UserServiceInterface interface {
+	GetAllUsers() []models.User
+	CreateUser(user models.User) error
+	SearchUserByID(ID string) (models.User, error)
+	SearchUserByUsername(username string) (models.User, error)
+}
 
 type UserService struct {
 	Userdata []models.User
 }
 
-func NewUserService() *UserService {
+func NewUserService() (UserServiceInterface, error) {
 
 	// import data from JSON file
 	userdata := make([]models.User, 0)
-	file, err := os.ReadFile(dataFilePath)
+	file, err := os.ReadFile(DataFilePath)
 	if err != nil {
 		log.Fatal(err)
+		return nil, err
 	}
 
 	if len(file) == 0 {
 		// if empty file
 		return &UserService{
 			Userdata: userdata,
-		}
+		}, nil
 	}
 
 	err = json.Unmarshal([]byte(file), &userdata)
 	if err != nil {
 		log.Println(err)
-		return nil
+		return nil, err
 	}
 
 	return &UserService{
 		Userdata: userdata,
-	}
+	}, nil
 }
 
 // GetAllUsers get all users in the database and return a list of user
@@ -67,7 +75,7 @@ func (u *UserService) CreateUser(user models.User) error {
 	}
 
 	// write data into file
-	err = os.WriteFile(dataFilePath, encoded, 0644)
+	err = os.WriteFile(DataFilePath, encoded, 0644)
 	if err != nil {
 		log.Println(err)
 		return err

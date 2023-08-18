@@ -10,10 +10,10 @@ import (
 
 type Server struct {
 	router      *gin.Engine
-	userService *services.UserService
+	userService services.UserServiceInterface
 }
 
-func NewServer(userService *services.UserService) *Server {
+func NewServer(userService services.UserServiceInterface) *Server {
 	return &Server{
 		router:      gin.Default(),
 		userService: userService,
@@ -26,6 +26,10 @@ func (s *Server) SetupRoute() {
 	s.router.GET("/search", s.handleSearchUser)
 	s.router.POST("/register", s.handleRegister)
 	s.router.POST("/login", s.handleLogin)
+}
+
+func (s *Server) GetRouter() *gin.Engine {
+	return s.router
 }
 
 // Run: run server
@@ -69,7 +73,7 @@ func (s *Server) handleLogin(c *gin.Context) {
 
 	foundUser, err := s.userService.SearchUserByUsername(user.Username)
 	if err != nil || foundUser.Password != user.Password {
-		// not found user in the database or passwords don't match
+		// user not found in the database or passwords don't match
 		c.JSON(http.StatusBadRequest, gin.H{
 			"error": "invalid username or password",
 		})
