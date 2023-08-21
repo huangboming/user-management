@@ -26,6 +26,23 @@ Steps:
 
 The server will open at `http://localhost:8080`.
 
+### Build and Run in the Docker
+
+Prerequisite:
+
+- Download and run [Docker](https://www.docker.com/products/docker-desktop)
+
+Steps:
+
+1. Download the project
+2. Open terminal, go to `YOUR_GO_PATH/usermanagement`
+3. run `docker build -t usermanagement .`
+4. run `docker compose up`
+
+The server will open at `http://localhost:8080`.
+
+You can change the environment variables in `docker-compose.yml` if you want.
+
 ## Testing
 
 This project provides 4 API in the backend:
