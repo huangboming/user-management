@@ -291,7 +291,7 @@ func TestHandleSearchUser(t *testing.T) {
 		},
 		{
 			// test case 3.1: user not found, return http.StatusBadRequest
-			name:  "user not found",
+			name:  "user not found 1",
 			query: "username=testuser",
 			mockSetup: func(m *MockUserService) {
 				m.On("SearchUserByUsername", "testuser").Return(models.User{}, errors.New("not found"))
@@ -300,8 +300,8 @@ func TestHandleSearchUser(t *testing.T) {
 		},
 		{
 			// test case 3.2: user not found, return http.StatusBadRequest
-			name:  "user not found",
-			query: "username=testid",
+			name:  "user not found 2",
+			query: "id=testid",
 			mockSetup: func(m *MockUserService) {
 				m.On("SearchUserByID", "testid").Return(models.User{}, errors.New("not found"))
 			},
