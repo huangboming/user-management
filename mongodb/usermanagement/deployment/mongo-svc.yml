@@ -1,0 +1,14 @@
+apiVersion: v1
+kind: Service
+metadata:
+  name: mongo-svc
+  labels:
+    app: usermanagement
+spec:
+  clusterIP: None  # 这使得 Service 成为 headless
+  selector:
+    app: usermanagement
+  ports:
+    - protocol: TCP
+      port: 27017
+      targetPort: 27017
