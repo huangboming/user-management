@@ -317,9 +317,9 @@ func TestHandleSearchUser(t *testing.T) {
 		{
 			// test case 3.2: user not found, return http.StatusBadRequest
 			name:  "user not found",
-			query: "id=testid",
+			query: fmt.Sprintf("id=%s", testID.Hex()),
 			mockSetup: func(m *MockUserService) {
-				m.On("SearchUserByID", "testid").Return(models.User{}, errors.New("not found"))
+				m.On("SearchUserByID", testID.Hex()).Return(models.User{}, errors.New("not found"))
 			},
 			wantStatus: http.StatusBadRequest,
 		},
