@@ -15,45 +15,54 @@ import (
 )
 
 type UserService struct {
-	ctx        context.Context
-	collection *mongo.Collection
+	Database models.CURDInterface
+}
+
+type UserServiceInterface interface {
+	LoginMongo()
+	GetAllUsers() ([]models.User, error)
+	CreateUser(user models.User) error
+	SearchUserByID(ID string) (models.User, error)
+	SearchUserByUsername(username string) (models.User, error)
+}
+
+func NewUserService() *UserService {
+	return &UserService{
+		Database: nil,
+	}
 }
 
 // LoginMongo: login mongodb
 func (u *UserService) LoginMongo() {
-	client, _ := mongo.Connect(u.ctx, options.Client().ApplyURI(os.Getenv("MONGO_URI")))
+	db := models.NewMongoDB()
+	client, _ := mongo.Connect(db.Ctx, options.Client().ApplyURI(os.Getenv("MONGO_URI")))
 	if err := client.Ping(context.TODO(), readpref.Primary()); err != nil {
 		log.Fatal(err)
 	}
 	log.Println("Connected to MongoDB")
 
-	u.collection = client.Database(os.Getenv("MONGO_DATABASE")).Collection("user")
-}
+	db.Client = client
+	db.Collection = client.Database(os.Getenv("MONGO_DATABASE")).Collection("user")
 
-func NewUserService() *UserService {
-	return &UserService{
-		collection: nil,
-		ctx:        context.Background(),
-	}
+	u.Database = db
 }
 
 // GetAllUsers get all users in the database and return a list of user
 func (u *UserService) GetAllUsers() ([]models.User, error) {
 	// select data from mongodb
-	cur, err := u.collection.Find(u.ctx, bson.M{})
+	found, err := u.Database.Read(bson.M{}, &models.User{})
 	if err != nil {
-		log.Println(err)
 		return nil, err
 	}
-	defer cur.Close(u.ctx)
-
 	users := make([]models.User, 0)
-	for cur.Next(u.ctx) {
-		var user models.User
-		cur.Decode(&user)
-		users = append(users, user)
+	for _, user := range found {
+		user, ok := user.(*models.User)
+		if !ok {
+			return nil, errors.New("type assertion failed")
+		}
+		users = append(users, *user)
 	}
-	return users, nil
+	return users, err
 }
 
 // CreateUser adds a new user to the UserService.
@@ -63,14 +72,14 @@ func (u *UserService) CreateUser(user models.User) error {
 	// if the user already exists, return error
 	_, err := u.SearchUserByUsername(user.Username)
 	if err == nil {
-		return errors.New("user already exsit")
+		return errors.New("user already exist")
 	}
 
-	_, err = u.collection.InsertOne(u.ctx, user)
+	// insert to MongoDB
+	err = u.Database.Create(user)
 	if err != nil {
 		return err
 	}
-
 	return nil
 }
 
@@ -86,21 +95,22 @@ func (u *UserService) SearchUserByID(ID string) (models.User, error) {
 
 	// search from MongoDB
 	filter := bson.M{"_id": objectID}
-	cur, err := u.collection.Find(u.ctx, filter)
+	found, err := u.Database.Read(filter, &models.User{})
 	if err != nil {
 		return models.User{}, err
 	}
 
-	var user models.User
-	if cur.Next(u.ctx) { // found one
-		err = cur.Decode(&user)
-		if err != nil {
-			return models.User{}, err
+	// found one
+	if len(found) > 0 {
+		user, ok := found[0].(*models.User)
+		if !ok {
+			return models.User{}, errors.New("type assertion failed")
 		}
-		return user, nil
-	} else { // not found
-		return models.User{}, errors.New("not found")
+		return *user, nil
 	}
+
+	// not found
+	return models.User{}, errors.New("not found")
 }
 
 // SearchUserByUsername searches for a user in the database by the given username.
@@ -110,20 +120,21 @@ func (u *UserService) SearchUserByUsername(username string) (models.User, error)
 
 	// search from MongoDB
 	filter := bson.M{"username": username}
-	cur, err := u.collection.Find(u.ctx, filter)
+	found, err := u.Database.Read(filter, &models.User{})
 	if err != nil {
 		return models.User{}, err
 	}
 
-	var user models.User
-	if cur.Next(u.ctx) { // found one
-		err = cur.Decode(&user)
-		if err != nil {
-			return models.User{}, err
+	// found one
+	if len(found) > 0 {
+		user, ok := found[0].(*models.User)
+		if !ok {
+			return models.User{}, errors.New("type assertion failed")
 		}
-		return user, nil
-	} else { // not found
-		return models.User{}, errors.New("not found")
+		return *user, nil
 	}
+
+	// not found
+	return models.User{}, errors.New("not found")
 
 }
