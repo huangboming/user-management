@@ -61,7 +61,7 @@ func (u *UserService) CreateUser(user models.User) error {
 	// if the user already exists, return error
 	_, err := u.SearchUserByUsername(user.Username)
 	if err == nil {
-		return errors.New("user already exsit")
+		return errors.New("user already exist")
 	}
 
 	// get all user data and append new user
