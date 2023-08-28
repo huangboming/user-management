@@ -15,14 +15,14 @@ import (
 func TestGetAllUsers(t *testing.T) {
 	tests := []struct {
 		name      string
-		mockSetup func(m *mockMongoDB)
+		mockSetup func(m *MockDB)
 		wantError bool
 		wantUsers int
 	}{
 		{
 			// test case 1: successfully get all users
 			name: "successfully get all users",
-			mockSetup: func(m *mockMongoDB) {
+			mockSetup: func(m *MockDB) {
 				m.On("Read", mock.Anything, mock.Anything).Return([]interface{}{
 					&models.User{
 						ID:       primitive.NewObjectID(),
@@ -42,7 +42,7 @@ func TestGetAllUsers(t *testing.T) {
 		{
 			// test case 2: failed to get all users
 			name: "failed to get all users",
-			mockSetup: func(m *mockMongoDB) {
+			mockSetup: func(m *MockDB) {
 				m.On("Read", mock.Anything, mock.Anything).Return([]interface{}{}, errors.New("failed to read from db"))
 			},
 			wantError: true,
@@ -52,7 +52,7 @@ func TestGetAllUsers(t *testing.T) {
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			mockDB := new(mockMongoDB)
+			mockDB := new(MockDB)
 			tt.mockSetup(mockDB)
 
 			// create a new UserService with the mockDB
@@ -85,13 +85,13 @@ func TestCreateUser(t *testing.T) {
 	tests := []struct {
 		name      string
 		inputUser models.User
-		mockSetup func(m *mockUserService, db *mockMongoDB)
+		mockSetup func(m *mockUserService, db *MockDB)
 		wantErr   bool
 	}{
 		{
 			name:      "successfully create user",
 			inputUser: models.User{Username: "testuser", Password: "testpass"},
-			mockSetup: func(m *mockUserService, db *mockMongoDB) {
+			mockSetup: func(m *mockUserService, db *MockDB) {
 				m.On("SearchUserByUsername", "testuser").Return(models.User{}, errors.New("user not found"))
 				db.On("Create", mock.Anything).Return(nil)
 			},
@@ -100,7 +100,7 @@ func TestCreateUser(t *testing.T) {
 		{
 			name:      "user already exists",
 			inputUser: models.User{Username: "testuser", Password: "testpass"},
-			mockSetup: func(m *mockUserService, db *mockMongoDB) {
+			mockSetup: func(m *mockUserService, db *MockDB) {
 				m.On("SearchUserByUsername", "testuser").Return(models.User{
 					Username: "testuser",
 					Password: "testpass",
@@ -112,7 +112,7 @@ func TestCreateUser(t *testing.T) {
 		{
 			name:      "database error on create",
 			inputUser: models.User{Username: "testuser", Password: "testpass"},
-			mockSetup: func(m *mockUserService, db *mockMongoDB) {
+			mockSetup: func(m *mockUserService, db *MockDB) {
 				m.On("SearchUserByUsername", "testuser").Return(models.User{}, errors.New("user not found"))
 				db.On("Create", mock.Anything).Return(errors.New("database error"))
 			},
@@ -122,7 +122,7 @@ func TestCreateUser(t *testing.T) {
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			mockDB := new(mockMongoDB)
+			mockDB := new(MockDB)
 			mockService := &mockUserService{userservice: &services.UserService{Database: mockDB}}
 			tt.mockSetup(mockService, mockDB)
 
@@ -146,7 +146,7 @@ func TestSearchUserByID(t *testing.T) {
 	tests := []struct {
 		name      string
 		ID        string
-		mockSetup func(m *mockMongoDB)
+		mockSetup func(m *MockDB)
 		wantError bool
 		wantUser  bool
 	}{
@@ -154,7 +154,7 @@ func TestSearchUserByID(t *testing.T) {
 			// test case 1: successfully get user by ID
 			name: "successfully get user by ID",
 			ID:   primitive.NewObjectID().Hex(),
-			mockSetup: func(m *mockMongoDB) {
+			mockSetup: func(m *MockDB) {
 				m.On("Read", mock.Anything, mock.Anything).Return([]interface{}{
 					&models.User{
 						ID:       primitive.NewObjectID(),
@@ -170,7 +170,7 @@ func TestSearchUserByID(t *testing.T) {
 			// test case 2: failed to get user by ID
 			name: "failed to get user by ID",
 			ID:   primitive.NewObjectID().Hex(),
-			mockSetup: func(m *mockMongoDB) {
+			mockSetup: func(m *MockDB) {
 				m.On("Read", mock.Anything, mock.Anything).Return([]interface{}{}, errors.New("failed to read from db"))
 			},
 			wantError: true,
@@ -180,7 +180,7 @@ func TestSearchUserByID(t *testing.T) {
 			// test case 3: user not found
 			name: "user not found",
 			ID:   primitive.NewObjectID().Hex(),
-			mockSetup: func(m *mockMongoDB) {
+			mockSetup: func(m *MockDB) {
 				m.On("Read", mock.Anything, mock.Anything).Return([]interface{}{}, nil)
 			},
 			wantError: true,
@@ -190,7 +190,7 @@ func TestSearchUserByID(t *testing.T) {
 			// test case 4: error when converting ID to ObjectID
 			name: "error when converting ID to ObjectID",
 			ID:   "invalidID",
-			mockSetup: func(m *mockMongoDB) {
+			mockSetup: func(m *MockDB) {
 				m.On("Read", mock.Anything, mock.Anything).Return([]interface{}{}, nil)
 			},
 			wantError: true,
@@ -200,7 +200,7 @@ func TestSearchUserByID(t *testing.T) {
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			mockDB := new(mockMongoDB)
+			mockDB := new(MockDB)
 			tt.mockSetup(mockDB)
 
 			// create a new UserService with the mockDB
@@ -230,14 +230,14 @@ func TestSearchUserByUsername(t *testing.T) {
 
 	tests := []struct {
 		name      string
-		mockSetup func(m *mockMongoDB)
+		mockSetup func(m *MockDB)
 		wantError bool
 		wantUser  bool
 	}{
 		{
 			// test case 1: successfully get user by username
 			name: "successfully get user by username",
-			mockSetup: func(m *mockMongoDB) {
+			mockSetup: func(m *MockDB) {
 				m.On("Read", mock.Anything, mock.Anything).Return([]interface{}{
 					&models.User{
 						ID:       primitive.NewObjectID(),
@@ -252,7 +252,7 @@ func TestSearchUserByUsername(t *testing.T) {
 		{
 			// test case 2: failed to get user by username
 			name: "failed to get user by username",
-			mockSetup: func(m *mockMongoDB) {
+			mockSetup: func(m *MockDB) {
 				m.On("Read", mock.Anything, mock.Anything).Return([]interface{}{}, errors.New("failed to read from db"))
 			},
 			wantError: true,
@@ -261,7 +261,7 @@ func TestSearchUserByUsername(t *testing.T) {
 		{
 			// test case 3: user not found
 			name: "user not found",
-			mockSetup: func(m *mockMongoDB) {
+			mockSetup: func(m *MockDB) {
 				m.On("Read", mock.Anything, mock.Anything).Return([]interface{}{}, nil)
 			},
 			wantError: true,
@@ -271,7 +271,7 @@ func TestSearchUserByUsername(t *testing.T) {
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			mockDB := new(mockMongoDB)
+			mockDB := new(MockDB)
 			tt.mockSetup(mockDB)
 
 			// create a new UserService with the mockDB

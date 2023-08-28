@@ -12,6 +12,8 @@ Welcome to the User Management System project. This scaffold provides a basic st
 
 ## Running the Project
 
+### Run with MongoDB
+
 Prerequisite:
 
 - Download and run [MongoDB](https://www.mongodb.com/try/download/community)(on your computer or on docker)
@@ -26,7 +28,34 @@ Steps:
 
 The server will open at `http://localhost:8080`.
 
-### Build and Run in the Docker
+### Run with MySQL
+
+Prequisite:
+
+1. Download and run [MySQL](https://dev.mysql.com/downloads/mysql/)(on your computer or on docker)；docker example: `docker run -d --name mysql -e MYSQL_ROOT_PASSWORD=password -p 3306:3306 mysql:latest`
+2. Create a database named `user` in MySQL
+3. Create a table named `users` in the `user` database, e.g.
+
+```SQL
+CREATE TABLE users(
+    id CHAR(30) NOT NULL,
+    username CHAR(50) NOT NULL,
+    password CHAR(65) NOT NULL,
+    PRIMARY KEY (id));
+```
+
+(Notice that the `password` field is at least 60 characters long, because the project uses `bcrypt` to hash the password)
+
+Steps:
+
+1. Download the project
+2. Open terminal, go to `YOUR_GO_PATH/usermanagement/cmd`
+3. Run the project with `MYSQL_URI="<YOUR_MYSQL_URI>" go run .`
+   - e.g. `MYSQL_URI=root:password@tcp(127.0.0.1:3306)/users go run .`, where `root` is MySQL root user, `password` is `MYSQL_ROOT_PASSWORD`.
+
+The server will open at `http://localhost:8080`.
+
+### Build and Run in the Docker Compose (Only for MongoDB)
 
 Prerequisite:
 

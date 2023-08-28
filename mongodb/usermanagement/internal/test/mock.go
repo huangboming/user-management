@@ -14,7 +14,7 @@ type MockUserService struct {
 	mock.Mock
 }
 
-func (m *MockUserService) LoginMongo() {
+func (m *MockUserService) LoginDB() {
 	m.Called()
 }
 
@@ -38,26 +38,26 @@ func (m *MockUserService) SearchUserByID(ID string) (models.User, error) {
 	return args.Get(0).(models.User), args.Error(1)
 }
 
-type mockMongoDB struct {
+type MockDB struct {
 	mock.Mock
 }
 
-func (m *mockMongoDB) Create(item interface{}) error {
+func (m *MockDB) Create(item interface{}) error {
 	args := m.Called(item)
 	return args.Error(0)
 }
 
-func (m *mockMongoDB) Read(filter interface{}, callback func() interface{}) ([]interface{}, error) {
+func (m *MockDB) Read(filter interface{}, callback func() interface{}) ([]interface{}, error) {
 	args := m.Called(filter, callback)
 	return args.Get(0).([]interface{}), args.Error(1)
 }
 
-func (m *mockMongoDB) Update(filter interface{}, update interface{}) error {
+func (m *MockDB) Update(filter interface{}, update interface{}) error {
 	args := m.Called(filter, update)
 	return args.Error(0)
 }
 
-func (m *mockMongoDB) Delete(filter interface{}) error {
+func (m *MockDB) Delete(filter interface{}) error {
 	args := m.Called(filter)
 	return args.Error(0)
 }

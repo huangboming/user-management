@@ -22,9 +22,9 @@ func NewServer(userService services.UserServiceInterface) *Server {
 	}
 }
 
-// Login into mongodb
-func (s *Server) LoginMongo() {
-	s.userService.LoginMongo()
+// login database
+func (s *Server) LoginDB() {
+	s.userService.LoginDB()
 }
 
 // SetupRoute sets up routes on the server
