@@ -1,6 +1,6 @@
 # User Management
 
-Exercise project for gin and wire.
+Exercise project for [`gin`](https://github.com/gin-gonic/gin) and [`wire`](https://github.com/google/wire).
 
 Two versions:
 
