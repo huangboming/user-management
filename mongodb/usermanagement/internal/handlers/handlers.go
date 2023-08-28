@@ -7,6 +7,7 @@ import (
 	"usermanagement/internal/services"
 
 	"github.com/gin-gonic/gin"
+	"golang.org/x/crypto/bcrypt"
 )
 
 type Server struct {
@@ -56,6 +57,17 @@ func (s *Server) handleRegister(c *gin.Context) {
 		return
 	}
 
+	// hash password
+	password := data.Password
+	hashedPassword, err := bcrypt.GenerateFromPassword([]byte(password), bcrypt.DefaultCost)
+	if err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{
+			"error": err.Error(),
+		})
+		return
+	}
+	data.Password = string(hashedPassword)
+
 	user := models.NewUser(data.Username, data.Password)
 	if err := s.userService.CreateUser(*user); err != nil {
 		c.JSON(http.StatusBadRequest, gin.H{
@@ -69,19 +81,29 @@ func (s *Server) handleRegister(c *gin.Context) {
 // handleLogin handles the user authentication process for the POST /login API endpoint.
 // It expects a JSON payload containing a username and password.
 func (s *Server) handleLogin(c *gin.Context) {
-	var user models.User
-	if err := c.ShouldBindJSON(&user); err != nil {
+	var userInput models.User
+	if err := c.ShouldBindJSON(&userInput); err != nil {
 		c.JSON(http.StatusBadRequest, gin.H{
 			"error": err.Error(),
 		})
 		return
 	}
 
-	foundUser, err := s.userService.SearchUserByUsername(user.Username)
-	if err != nil || foundUser.Password != user.Password {
-		// not found user in the database or passwords don't match
+	foundUser, err := s.userService.SearchUserByUsername(userInput.Username)
+	if err != nil {
+		// not found user in the database
 		c.JSON(http.StatusBadRequest, gin.H{
-			"error": "invalid username or password",
+			"error": "user doesn't exists",
+		})
+		return
+	}
+
+	// compare password
+	err = bcrypt.CompareHashAndPassword([]byte(foundUser.Password), []byte(userInput.Password))
+	if err != nil {
+		// wrong password
+		c.JSON(http.StatusBadRequest, gin.H{
+			"error": "invalid password",
 		})
 		return
 	}
