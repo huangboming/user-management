@@ -15,6 +15,7 @@ import (
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/mock"
 	"go.mongodb.org/mongo-driver/bson/primitive"
+	"golang.org/x/crypto/bcrypt"
 )
 
 func TestHandleRegister(t *testing.T) {
@@ -116,9 +117,10 @@ func TestHandleLogin(t *testing.T) {
 				"password": "testpass",
 			},
 			mockSetup: func(m *MockUserService) {
+				hashedPassword, _ := bcrypt.GenerateFromPassword([]byte("testpass"), bcrypt.DefaultCost)
 				m.On("SearchUserByUsername", "testuser").Return(models.User{
 					Username: "testuser",
-					Password: "$2a$10$dzKCaI3ER6WLzNsO1rJHhOSb7QiWbuJrZwoiMJnDIOowmkwfNcWKq",
+					Password: string(hashedPassword),
 					ID:       primitive.NewObjectID(),
 				}, nil)
 			},
