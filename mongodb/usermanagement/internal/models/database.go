@@ -2,13 +2,14 @@ package models
 
 import (
 	"context"
+	"fmt"
 
 	"go.mongodb.org/mongo-driver/mongo"
 )
 
 type CURDInterface interface {
 	Create(interface{}) error
-	Read(interface{}, interface{}) ([]interface{}, error)
+	Read(interface{}, func() interface{}) ([]interface{}, error)
 	Update(interface{}, interface{}) error
 	Delete(interface{}) error
 }
@@ -35,7 +36,7 @@ func (m *MongoDB) Create(item interface{}) error {
 	return nil
 }
 
-func (m *MongoDB) Read(filter interface{}, result interface{}) ([]interface{}, error) {
+func (m *MongoDB) Read(filter interface{}, callback func() interface{}) ([]interface{}, error) {
 	// result是一个指针，指向一个类型的值
 	// 如：result := &models.User{}
 
@@ -47,12 +48,14 @@ func (m *MongoDB) Read(filter interface{}, result interface{}) ([]interface{}, e
 
 	items := make([]interface{}, 0)
 	for cur.Next(m.Ctx) {
+		result := callback()
 		err := cur.Decode(result)
 		if err != nil {
 			return nil, err
 		}
 		items = append(items, result)
 	}
+	fmt.Println(items)
 	return items, nil
 }
 

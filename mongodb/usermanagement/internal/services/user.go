@@ -50,7 +50,7 @@ func (u *UserService) LoginMongo() {
 // GetAllUsers get all users in the database and return a list of user
 func (u *UserService) GetAllUsers() ([]models.User, error) {
 	// select data from mongodb
-	found, err := u.Database.Read(bson.M{}, &models.User{})
+	found, err := u.Database.Read(bson.M{}, func() interface{} { return &models.User{} })
 	if err != nil {
 		return nil, err
 	}
@@ -95,7 +95,7 @@ func (u *UserService) SearchUserByID(ID string) (models.User, error) {
 
 	// search from MongoDB
 	filter := bson.M{"_id": objectID}
-	found, err := u.Database.Read(filter, &models.User{})
+	found, err := u.Database.Read(filter, func() interface{} { return &models.User{} })
 	if err != nil {
 		return models.User{}, err
 	}
@@ -120,7 +120,7 @@ func (u *UserService) SearchUserByUsername(username string) (models.User, error)
 
 	// search from MongoDB
 	filter := bson.M{"username": username}
-	found, err := u.Database.Read(filter, &models.User{})
+	found, err := u.Database.Read(filter, func() interface{} { return &models.User{} })
 	if err != nil {
 		return models.User{}, err
 	}
