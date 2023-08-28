@@ -10,7 +10,8 @@ RUN go mod download && go mod verify
 COPY . .
 
 # build the application
-RUN CGO_ENABLED=0 GOOS=linux go build -o main ./cmd
+WORKDIR /go/src/app/cmd
+RUN CGO_ENABLED=0 GOOS=linux go build -o main .
 
 # run the binary
-CMD ["/go/src/app/main"]
+CMD ["/go/src/app/cmd/main"]
