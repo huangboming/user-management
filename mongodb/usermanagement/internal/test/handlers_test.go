@@ -118,7 +118,7 @@ func TestHandleLogin(t *testing.T) {
 			mockSetup: func(m *MockUserService) {
 				m.On("SearchUserByUsername", "testuser").Return(models.User{
 					Username: "testuser",
-					Password: "testpass",
+					Password: "$2a$10$dzKCaI3ER6WLzNsO1rJHhOSb7QiWbuJrZwoiMJnDIOowmkwfNcWKq",
 					ID:       primitive.NewObjectID(),
 				}, nil)
 			},
