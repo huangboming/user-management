@@ -37,8 +37,9 @@ func (m *MongoDB) Create(item interface{}) error {
 }
 
 func (m *MongoDB) Read(filter interface{}, callback func() interface{}) ([]interface{}, error) {
-	// result是一个指针，指向一个类型的值
-	// 如：result := &models.User{}
+	// callback is a function that returns an empty interface
+	// this is used to create a new instance of the struct that we want to decode the result into
+	// e.g. callback := func() interface{} { return &models.User{} }
 
 	cur, err := m.Collection.Find(m.Ctx, filter)
 	if err != nil {
