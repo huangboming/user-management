@@ -47,8 +47,8 @@ func (m *mockMongoDB) Create(item interface{}) error {
 	return args.Error(0)
 }
 
-func (m *mockMongoDB) Read(filter interface{}, result interface{}) ([]interface{}, error) {
-	args := m.Called(filter, result)
+func (m *mockMongoDB) Read(filter interface{}, callback func() interface{}) ([]interface{}, error) {
+	args := m.Called(filter, callback)
 	return args.Get(0).([]interface{}), args.Error(1)
 }
 
